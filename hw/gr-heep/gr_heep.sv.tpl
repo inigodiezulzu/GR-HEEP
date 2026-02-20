@@ -304,11 +304,10 @@ module gr_heep (
     assign heep_dma_addr_rsp = '0;
   % endif
   % if (gr_heep["xbar_nmasters"] == 0):
-    assign gr_heep_master_req = '0;
-    assign heep_slave_req = '0;
-  % else:
     % if (gr_heep["xbar_nslaves"] > 0):
-      assign heep_slave_req = '0;
+    assign gr_heep_master_req = '0;
+    % else:
+    assign heep_slave_req = '0;
     % endif
   % endif
   assign ext_ao_peripheral_req = '0;
