@@ -16,31 +16,41 @@
 
 <%
     gr_heep = xheep.get_extension("gr-heep")
+    xif = xheep.xif()
+    cpu = xheep.cpu()
 %>
 
 module gr_heep_peripherals (
     input logic clk_i,
-    input logic rst_ni${'' if gr_heep["xbar_nmasters"] == 0 and gr_heep["xbar_nslaves"] == 0 and gr_heep["periph_nslaves"] == 0 and gr_heep["ext_interrupts"] == 0 else ','}
+    input logic rst_ni${'' if ((gr_heep["xbar_nmasters"] + gr_heep["xbar_nslaves"] + gr_heep["periph_nslaves"] + gr_heep["ext_interrupts"] == 0) and (xif is None)) else ','}
     
     % if (gr_heep["xbar_nmasters"] > 0):
         // External peripherals master ports
         output obi_pkg::obi_req_t  [gr_heep_pkg::ExtXbarNMasterRnd-1:0] gr_heep_master_req_o,
-        input obi_pkg::obi_resp_t [gr_heep_pkg::ExtXbarNMasterRnd-1:0] gr_heep_master_resp_i${'' if (gr_heep["xbar_nslaves"] + gr_heep["periph_nslaves"] + gr_heep["ext_interrupts"] == 0) else ','}
+        input obi_pkg::obi_resp_t [gr_heep_pkg::ExtXbarNMasterRnd-1:0] gr_heep_master_resp_i${'' if ((gr_heep["xbar_nslaves"] + gr_heep["periph_nslaves"] + gr_heep["ext_interrupts"] == 0) and (xif is None)) else ','}
     % endif
     % if (gr_heep["xbar_nslaves"] > 0):
         // External peripherals slave ports
         input obi_pkg::obi_req_t  [gr_heep_pkg::ExtXbarNSlaveRnd-1:0] gr_heep_slave_req_i,
-        output obi_pkg::obi_resp_t [gr_heep_pkg::ExtXbarNSlaveRnd-1:0] gr_heep_slave_resp_o${'' if (gr_heep["periph_nslaves"] + gr_heep["ext_interrupts"] == 0) else ','}
+        output obi_pkg::obi_resp_t [gr_heep_pkg::ExtXbarNSlaveRnd-1:0] gr_heep_slave_resp_o${'' if ((gr_heep["periph_nslaves"] + gr_heep["ext_interrupts"] == 0) and (xif is None)) else ','}
     % endif
     % if (gr_heep["periph_nslaves"] > 0):
         // External peripherals configuration ports
         input reg_pkg::reg_req_t gr_heep_peripheral_req_i,
-        output reg_pkg::reg_rsp_t gr_heep_peripheral_rsp_o${'' if (gr_heep["ext_interrupts"] == 0) else ','}
+        output reg_pkg::reg_rsp_t gr_heep_peripheral_rsp_o${'' if ((gr_heep["ext_interrupts"] == 0) and (xif is None)) else ','}
     % endif
     % if (gr_heep["ext_interrupts"] > 0):
         // External peripherals interrupt ports
         output logic [gr_heep_pkg::ExtInterrupts-1:0] gr_heep_peripheral_vec_int_o,
-        output logic     gr_heep_peripheral_int_o
+        output logic     gr_heep_peripheral_int_o${'' if (xif is None) else ','}
+    % endif
+    % if (xif):
+        if_xif.coproc_compressed        xif_compressed_if,
+        if_xif.coproc_issue             xif_issue_if,
+        if_xif.coproc_commit            xif_commit_if,
+        if_xif.coproc_mem               xif_mem_if,
+        if_xif.coproc_mem_result        xif_mem_result_if,
+        if_xif.coproc_result            xif_result_if
     % endif
 );
 
@@ -102,5 +112,21 @@ module gr_heep_peripherals (
         // % endif
     % endfor
   % endif
+
+  % if (cpu.name == "cv32e40px" and xif):
+    xif_copro #(
+        .INPUT_BUFFER_DEPTH(1),
+        .FORWARDING(1)
+    ) xif_copro_i (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .xif_compressed_if(xif_compressed_if),
+        .xif_issue_if(xif_issue_if),
+        .xif_commit_if(xif_commit_if),
+        .xif_mem_if(xif_mem_if),
+        .xif_mem_result_if(xif_mem_result_if),
+        .xif_result_if(xif_result_if)
+    );
+% endif
 
 endmodule

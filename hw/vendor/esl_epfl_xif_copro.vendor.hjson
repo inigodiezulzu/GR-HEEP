@@ -1,0 +1,13 @@
+// Copyright EPFL
+// Licensed under the Solderpad Hardware License v2.1, see LICENSE.txt for deta> 
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+{
+  name: "xif_copro",
+  target_dir: "xif_copro",
+  
+  upstream: {
+    url: "https://github.com/esl-epfl/xif_copro",
+    rev: "75a9cec2e2331cb2aa6e49aa5da6c6d862902e56",
+  },
+}
