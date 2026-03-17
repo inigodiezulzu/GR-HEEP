@@ -159,7 +159,7 @@ def gr_heep_config():
 
     ao_spc_num = 1
 
-    external_interrupts = 1
+    external_interrupts = 0
 
     # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     # Do not modify below this line unless you know what you are doing

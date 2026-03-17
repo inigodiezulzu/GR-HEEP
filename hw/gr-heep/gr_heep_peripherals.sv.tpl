@@ -113,20 +113,20 @@ module gr_heep_peripherals (
     % endfor
   % endif
 
-  % if (cpu.name == "cv32e40px" and xif):
-    xif_copro #(
-        .INPUT_BUFFER_DEPTH(1),
-        .FORWARDING(1)
-    ) xif_copro_i (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
-        .xif_compressed_if(xif_compressed_if),
-        .xif_issue_if(xif_issue_if),
-        .xif_commit_if(xif_commit_if),
-        .xif_mem_if(xif_mem_if),
-        .xif_mem_result_if(xif_mem_result_if),
-        .xif_result_if(xif_result_if)
-    );
-% endif
+//   % if (cpu.name == "cv32e40px" and xif):
+//     xif_copro #(
+//         .INPUT_BUFFER_DEPTH(1),
+//         .FORWARDING(1)
+//     ) xif_copro_i (
+//         .clk_i(clk_i),
+//         .rst_ni(rst_ni),
+//         .xif_compressed_if(xif_compressed_if),
+//         .xif_issue_if(xif_issue_if),
+//         .xif_commit_if(xif_commit_if),
+//         .xif_mem_if(xif_mem_if),
+//         .xif_mem_result_if(xif_mem_result_if),
+//         .xif_result_if(xif_result_if)
+//     );
+// % endif
 
 endmodule
