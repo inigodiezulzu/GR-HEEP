@@ -54,6 +54,71 @@ module gr_heep_peripherals (
     % endif
 );
 
+  % if (xif and cpu.name == "cv32e20" ):
+
+    // CVE2 X-IF signals
+    logic                    cve2_x_issue_valid;
+    logic                    cve2_x_issue_ready;
+    cve2_pkg::x_issue_req_t  cve2_x_issue_req;
+    cve2_pkg::x_issue_resp_t cve2_x_issue_resp;
+    cve2_pkg::x_register_t   cve2_x_register;
+    logic                    cve2_x_register_valid;
+
+    logic                    cve2_x_commit_valid;
+    cve2_pkg::x_commit_t     cve2_x_commit;
+
+    logic                    cve2_x_result_valid;
+    logic                    cve2_x_result_ready;
+    cve2_pkg::x_result_t     cve2_x_result;
+    
+    // Issue/Register Interface <--> Issue Interface
+    assign cve2_x_issue_valid = xif_issue_if.issue_valid;
+    assign xif_issue_if.issue_ready = cve2_x_issue_ready;
+    assign cve2_x_issue_req.instr = xif_issue_if.issue_req.instr;
+    assign cve2_x_issue_req.id = xif_issue_if.issue_req.id;
+    assign cve2_x_issue_req.hartid = '0;
+    assign xif_issue_if.issue_resp.accept = cve2_x_issue_resp.accept;
+    assign xif_issue_if.issue_resp.writeback = cve2_x_issue_resp.writeback;
+    assign xif_issue_if.issue_resp.dualwrite = '0;
+    assign xif_issue_if.issue_resp.dualread = '0;
+    assign xif_issue_if.issue_resp.loadstore = '0;
+    assign xif_issue_if.issue_resp.ecswrite = '0;
+    assign xif_issue_if.issue_resp.exc = '0;
+    % if (xif.x_num_rs == 3):
+    assign cve2_x_register.rs = xif_issue_if.issue_req.rs;
+    assign cve2_x_register.rs_valid = xif_issue_if.issue_req.rs_valid;
+    % else:
+    assign cve2_x_register.rs[0] = xif_issue_if.issue_req.rs[0];
+    assign cve2_x_register.rs[1] = xif_issue_if.issue_req.rs[1];
+    assign cve2_x_register.rs_valid[1:0] = xif_issue_if.issue_req.rs_valid[1:0];
+    % endif
+    assign cve2_x_register.hartid = '0;
+    assign cve2_x_register.id = '0;
+    assign cve2_x_register_valid = xif_issue_if.issue_valid;
+    
+    // Commit Interface
+    assign cve2_x_commit_valid = xif_commit_if.commit_valid;
+    assign cve2_x_commit.hartid = '0;
+    assign cve2_x_commit.id = xif_commit_if.commit.id;
+    assign cve2_x_commit.commit_kill = xif_commit_if.commit.commit_kill;
+
+    // Result Interface
+    assign cve2_x_result_ready = xif_result_if.result_ready;
+    assign xif_result_if.result_valid = cve2_x_result_valid;
+    assign xif_result_if.result.id = cve2_x_result.id;
+    assign xif_result_if.result.data = cve2_x_result.data;
+    assign xif_result_if.result.rd = cve2_x_result.rd;
+    assign xif_result_if.result.we = cve2_x_result.we;
+    
+    // Tie off unused fields to avoid X propagation in simulation
+    assign xif_result_if.result.ecsdata = '0;
+    assign xif_result_if.result.ecswe   = '0;
+    assign xif_result_if.result.exc     = '0;
+    assign xif_result_if.result.exccode = '0;
+    assign xif_result_if.result.err     = '0;
+    assign xif_result_if.result.dbg     = '0;
+  % endif
+
   % if (gr_heep["ext_interrupts"] > 0):
     logic [gr_heep_pkg::ExtInterrupts-1:0] gr_heep_peripheral_vec_int;
     assign gr_heep_peripheral_vec_int_o = gr_heep_peripheral_vec_int;
@@ -113,20 +178,52 @@ module gr_heep_peripherals (
     % endfor
   % endif
 
-//   % if (cpu.name == "cv32e40px" and xif):
-//     xif_copro #(
-//         .INPUT_BUFFER_DEPTH(1),
-//         .FORWARDING(1)
-//     ) xif_copro_i (
-//         .clk_i(clk_i),
-//         .rst_ni(rst_ni),
-//         .xif_compressed_if(xif_compressed_if),
-//         .xif_issue_if(xif_issue_if),
-//         .xif_commit_if(xif_commit_if),
-//         .xif_mem_if(xif_mem_if),
-//         .xif_mem_result_if(xif_mem_result_if),
-//         .xif_result_if(xif_result_if)
-//     );
-// % endif
+  % if (cpu.name == "cv32e40px" and xif):
+    // Example coprocessor CV-X-IF v0.2 compliant.
+    // xif_copro #(
+    //     .INPUT_BUFFER_DEPTH(1),
+    //     .FORWARDING(1)
+    // ) xif_copro_i (
+    //     .clk_i(clk_i),
+    //     .rst_ni(rst_ni),
+    //     .xif_compressed_if(xif_compressed_if),
+    //     .xif_issue_if(xif_issue_if),
+    //     .xif_commit_if(xif_commit_if),
+    //     .xif_mem_if(xif_mem_if),
+    //     .xif_mem_result_if(xif_mem_result_if),
+    //     .xif_result_if(xif_result_if)
+    // );
+  % endif
+
+  % if (cpu.name == "cv32e20" and xif):
+    // Example coprocessor CV-X-IF v1.0 compliant.
+    // cvxif_example_coprocessor #(
+    //     .NrRgprPorts(cve2_pkg::X_NUM_RS),
+    //     .XLEN(cve2_pkg::X_RFR_WIDTH),
+    //     .readregflags_t(cve2_pkg::readregflags_t),
+    //     .writeregflags_t(cve2_pkg::writeregflags_t),
+    //     .id_t(cve2_pkg::id_t),
+    //     .hartid_t(cve2_pkg::hartid_t),
+    //     .x_issue_req_t(cve2_pkg::x_issue_req_t),
+    //     .x_issue_resp_t(cve2_pkg::x_issue_resp_t),
+    //     .x_register_t(cve2_pkg::x_register_t),
+    //     .x_commit_t(cve2_pkg::x_commit_t),
+    //     .x_result_t(cve2_pkg::x_result_t)
+    // ) i_coprocessor (
+    //     .clk_i(clk_i),
+    //     .rst_ni(rst_ni),
+    //     .x_issue_valid_i(cve2_x_issue_valid),
+    //     .x_issue_ready_o(cve2_x_issue_ready),
+    //     .x_issue_req_i(cve2_x_issue_req),
+    //     .x_issue_resp_o(cve2_x_issue_resp),
+    //     .x_register_i(cve2_x_register),
+    //     .x_register_valid_i(cve2_x_register_valid),
+    //     .x_commit_valid_i(cve2_x_commit_valid),
+    //     .x_commit_i(cve2_x_commit),
+    //     .x_result_valid_o(cve2_x_result_valid),
+    //     .x_result_ready_i(cve2_x_result_ready),
+    //     .x_result_o(cve2_x_result)
+    // );
+  % endif
 
 endmodule
