@@ -85,12 +85,12 @@ module gr_heep_peripherals (
     assign xif_issue_if.issue_resp.ecswrite = '0;
     assign xif_issue_if.issue_resp.exc = '0;
     % if (xif.x_num_rs == 3):
-    assign cve2_x_register.rs = xif_issue_if.issue_req.rs;
-    assign cve2_x_register.rs_valid = xif_issue_if.issue_req.rs_valid;
+        assign cve2_x_register.rs = xif_issue_if.issue_req.rs;
+        assign cve2_x_register.rs_valid = xif_issue_if.issue_req.rs_valid;
     % else:
-    assign cve2_x_register.rs[0] = xif_issue_if.issue_req.rs[0];
-    assign cve2_x_register.rs[1] = xif_issue_if.issue_req.rs[1];
-    assign cve2_x_register.rs_valid[1:0] = xif_issue_if.issue_req.rs_valid[1:0];
+        assign cve2_x_register.rs[0] = xif_issue_if.issue_req.rs[0];
+        assign cve2_x_register.rs[1] = xif_issue_if.issue_req.rs[1];
+        assign cve2_x_register.rs_valid[1:0] = xif_issue_if.issue_req.rs_valid[1:0];
     % endif
     assign cve2_x_register.hartid = '0;
     assign cve2_x_register.id = '0;

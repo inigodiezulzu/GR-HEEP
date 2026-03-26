@@ -142,12 +142,12 @@ module gr_heep (
   // CORE-V eXtension Interface (CV-X-IF)
   % if xif:
     if_xif #(
-      .X_NUM_RS    (${xif.x_num_rs if xif != None else "unsigned'(2)"}),
-      .X_ID_WIDTH  (${xif.x_id_width if xif != None else "unsigned'(4)"}),
-      .X_MEM_WIDTH (${xif.x_mem_width if xif != None else "unsigned'(32)"}),
-      .X_RFR_WIDTH (${xif.x_rfr_width if xif != None else "unsigned'(32)"}),
-      .X_RFW_WIDTH (${xif.x_rfw_width if xif != None else "unsigned'(32)"}),
-      .X_MISA      (${xif.x_misa if xif != None else "32'h0"})
+      .X_NUM_RS    (${xif.x_num_rs}),
+      .X_ID_WIDTH  (${xif.x_id_width}),
+      .X_MEM_WIDTH (${xif.x_mem_width}),
+      .X_RFR_WIDTH (${xif.x_rfr_width}),
+      .X_RFW_WIDTH (${xif.x_rfw_width}),
+      .X_MISA      (${xif.x_misa})
     ) ext_xif ();
   % else:
     if_xif ext_xif (); // unused
